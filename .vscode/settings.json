@@ -1,5 +1,13 @@
 {
     "files.associations": {
+        "iosfwd": "cpp",
+        "vector": "cpp",
+        "algorithm": "cpp",
+        "xutility": "cpp",
+        "deque": "cpp",
+        "initializer_list": "cpp",
+        "xstring": "cpp",
+        "xmemory": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
         "cctype": "cpp",
@@ -15,9 +23,7 @@
         "ctime": "cpp",
         "cwchar": "cpp",
         "exception": "cpp",
-        "initializer_list": "cpp",
         "ios": "cpp",
-        "iosfwd": "cpp",
         "iostream": "cpp",
         "istream": "cpp",
         "iterator": "cpp",
@@ -33,16 +39,13 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "utility": "cpp",
-        "vector": "cpp",
         "xfacet": "cpp",
         "xiosbase": "cpp",
         "xlocale": "cpp",
         "xlocinfo": "cpp",
         "xlocnum": "cpp",
-        "xmemory": "cpp",
         "xstddef": "cpp",
-        "xstring": "cpp",
-        "xtr1common": "cpp",
-        "xutility": "cpp"
-    }
+        "xtr1common": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }
