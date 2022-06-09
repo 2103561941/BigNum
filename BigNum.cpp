@@ -8,6 +8,8 @@ BigNum operator-(const BigNum& op)
     temp.tag = !temp.tag;
     return temp;
 }
+
+// 
 void BigNum::trim() {
     vector<char>::reverse_iterator iter = integer.rbegin();
     while(!integer.empty() && (*iter) == 0){
@@ -15,7 +17,7 @@ void BigNum::trim() {
         iter=integer.rbegin();
     }
     if( integer.size()==0 ) {
-        tag = true;
+        // tag = true;
         integer.push_back(0);
     }
     vector<char>::const_iterator it = decimal.begin();
@@ -23,82 +25,30 @@ void BigNum::trim() {
         it = decimal.erase(it);
     }
     if( decimal.size()==0 ) {
-        tag = true;
+        // tag = true;
         decimal.push_back(0);
     }
 }
+
+int BigNum::bit = ACCURACY;
 
 //delete those 0 in the front
 const BigNum BigNum::ZERO=BigNum(0);
 const BigNum BigNum::ONE =BigNum(1);
 const BigNum BigNum::TEN =BigNum(10);
 
-BigNum::BigNum(){
-    tag = true;
-    integer.push_back(0);
-    decimal.push_back(0);
-}
-
-        
-// BigNum::BigNum(int val){
-//     if (val >= 0)
-//         tag = true;
-//     else{
-//         tag = false;
-//         val *= (-1);
-//     }
-//     do{
-//         integer.push_back( (char)(val%10) );
-//         val /= 10;
-//     } while ( val != 0 );
-//     decimal.push_back(0);
-// }
+BigNum::BigNum() 
+    : tag(true), integer(vector<char>(1,0)), decimal(vector<char>(1,0)) {
+        integer.reserve(10);
+        decimal.reserve(10);
+    }
 
 
-// BigNum::BigNum(unsigned int val) {
-//     if (val >= 0)
-//         tag = true;
-//     else{
-//         tag = false;
-//         val *= (-1);
-//     }
-//     do{
-//         integer.push_back( (char)(val%10) );
-//         val /= 10;
-//     } while ( val != 0 );
-//     decimal.push_back(0);
-// }
-
-// BigNum::BigNum(long long val){
-//     if (val >= 0)
-//         tag = true;
-//     else{
-//         tag = false;
-//         val *= (-1);
-//     }
-//     do{
-//         integer.push_back( (char)(val%10) );
-//         val /= 10;
-//     } while ( val != 0 );
-//     decimal.push_back(0);
-// }
-
-// BigNum::BigNum(float val) {
-//     // 转成字符串再构造
-//     const string strVal = std::to_string(val);
-//     setBigNumByStr(strVal);
-// } 
-
-
-// BigNum::BigNum(double val) {
-//     const string strVal = std::to_string(val);
-//     setBigNumByStr(strVal);
-// }   
-
-
-
-// 由于这块多出使用，所以抽象出来
+// private成员函数，主要用于提供给其他成员函数使用。
 void BigNum::setBigNumByStr(const string& val) {
+    integer.reserve(10);
+    decimal.reserve(10);
+    // 设置精度位 
     bool type = true;
     tag = true;
     for(auto iter = val.rbegin() ; iter < val.rend();  iter++)
@@ -131,7 +81,11 @@ void BigNum::setBigNumByStr(const string& val) {
         // 这种情况说明用户只输入了整数部分但没有小数部分。
         swap(integer, decimal);
     }
+
+    // 剪枝
+    trim();
 }
+
 
 BigNum::BigNum(const char* val) {
     const string str = val;
@@ -157,6 +111,12 @@ BigNum BigNum::operator=(const BigNum& op) {
     decimal = op.decimal;
     tag = op.tag;
     return (*this);
+}
+
+void BigNum::setBits(int b) {
+    if (b > 0) {
+        bit = b;
+    }
 }
 
 BigNum BigNum::abs() const  {
@@ -188,9 +148,7 @@ BigNum BigNum::pow(int a) const {
 }
 
 
-
-
-// 这里原本存储的时候整数部分和小数部分是分开存储并且倒叙的，
+// 这里原本存储的时候整数部分和小数部分是分开存储并且倒序的，
 // 所以转化为字符串需要同样reserver操作
 string BigNum::to_string() const {
     string num = "";
@@ -231,7 +189,6 @@ BigNum operator+=(BigNum& op1,const BigNum& op2){
         int op2_len = op2.decimal.size();
         char to_add = 0;     //进位
 
-
         if(op1_len<op2_len){
             iter1 = op1.decimal.begin();
             iter2 = op2.decimal.begin();
@@ -243,7 +200,7 @@ BigNum operator+=(BigNum& op1,const BigNum& op2){
             (*iter1) = (*iter1) % 10;
             iter1++; iter2++;
         }
-        // 将op2中多出来的小数位加到
+        // 将op2中多出来的小数位加到op1中
             it = op2.decimal.begin();
             iter2 = op2.decimal.end();
             iter2 = iter2 - op1_len -1;
@@ -286,7 +243,8 @@ BigNum operator+=(BigNum& op1,const BigNum& op2){
             (*iter1) = (*iter1) % 10;
             iter1++; iter2++;
         }
-        while ( iter1 != op1.integer.end() ){   // 
+        
+        while ( iter1 != op1.integer.end() ){   
             (*iter1) = (*iter1) + to_add;
             to_add = ( (*iter1) > 9 );
             (*iter1) %= 10;
@@ -310,10 +268,11 @@ BigNum operator+=(BigNum& op1,const BigNum& op2){
             return op1= op2 - (-op1);
     }
 }
-////
+
+
 BigNum operator-=(BigNum& op1,const BigNum& op2){
     if( op1.tag == op2.tag ) {     //只处理相同的符号的情况，同号的情况给+处理
-        if(op1.tag)  { 
+        if(op1.tag)  {             
             if(op1 < op2)  // 2 - 3
             {
                 BigNum op(op2 - op1);
@@ -391,6 +350,7 @@ BigNum operator-=(BigNum& op1,const BigNum& op2){
             return op1 = -(op2 + (-op1));
     }
 }
+
 BigNum operator*=(BigNum& op1,const BigNum& op2) {
     BigNum result(0);
     if (op1 == BigNum::ZERO || op2==BigNum::ZERO)
@@ -444,75 +404,74 @@ BigNum operator*=(BigNum& op1,const BigNum& op2) {
     op1 = result;
     return op1;
 }
-BigNum operator/=(BigNum& op1,const BigNum& op2) {
-    if(op2 == BigNum::ZERO)
+
+BigNum operator/=(BigNum& op1, const BigNum& op2) {
+    if (op2 == BigNum::ZERO)
         throw DividedByZeroException();
-    if(op1 == BigNum::ZERO)
+    if (op1 == BigNum::ZERO)
         return op1;
     BigNum op_temp2 = op2;
     BigNum op_temp1 = op1;
-    int Integer_Size = 0;
-    if((op_temp2.decimal.size() == 1)&&(*(op_temp2.decimal.begin()) == 0)){    }
-    else{
+    int Integer_Size = 0; // 表示10的几次方
+    if ((op_temp2.decimal.size() == 1) && (*(op_temp2.decimal.begin()) == 0)) {}
+    else {
         //Integer_Size -= op_temp2.decimal.size();
         int t = op_temp2.decimal.size();
-        while(t--){
-            op_temp1 = op_temp1*BigNum::TEN;
-            op_temp2 = op_temp2*BigNum::TEN;
+        while (t--) {
+            op_temp1 = op_temp1 * BigNum::TEN;
+            op_temp2 = op_temp2 * BigNum::TEN;
         }
     }
-    if(op_temp1<op_temp2){
-        while(op_temp1>op_temp2){
-            op_temp1 *= BigNum::TEN;
-            Integer_Size--;
-        }
-    }
-    else{
-        while(op_temp1>op_temp2){
-            op_temp1.decimal.push_back(*op_temp1.integer.begin());
-            op_temp1.integer.erase(op_temp1.integer.begin());
-            Integer_Size++;
-        }
-    }
-    int k = ACCURACY;
-    BigNum re(0); 
-    while(k--){
-        if(op_temp1<op_temp2){
-            op_temp1 = op_temp1*BigNum::TEN;
-            re = re*BigNum::TEN;
-        }
-        else{
-            int i;
-            BigNum compare;
-            for(i=2;i<10;i++){
-                BigNum BF(i);
-                compare = op_temp2*BF;
-                if(compare>op_temp1)
-                    break;
-            }//for
-            compare -= op_temp2;
-            op_temp1 -= compare;
-            BigNum index(i-1);
-            re = re + index;
-        }//else
-    }//while    
-    if(re.integer.size()>Integer_Size){
-        vector<char> temp(re.integer.begin(), re.integer.end());
-        re.integer.assign(temp.end() - Integer_Size, temp.end());
-        re.decimal.insert(re.decimal.begin(), temp.begin(),temp.end() - Integer_Size);
-    }
-    else{
-        int t = Integer_Size - re.integer.size();
-        while(t--){
-            re = re*BigNum::TEN;
-        }
+
+    while (op_temp1 >= op_temp2) {
+        op_temp1.decimal.push_back(*op_temp1.integer.begin());
+        op_temp1.integer.erase(op_temp1.integer.begin());
+        Integer_Size++;
     }
     
+    op_temp1 *= BigNum::TEN;
+    int k = op1.bit + 1;
+    string str = "0.";
+    while (k--) {
+        if (op_temp1 == BigNum::ZERO) {
+            break;
+        }
+        if (op_temp1 < op_temp2) {
+            str += '0';
+        }
+        else {
+            int i;
+            BigNum compare;
+            for (i = 1; i < 10; i++) {
+                BigNum BF(i);
+                compare = op_temp2 * BF;
+                if (compare > op_temp1)
+                    break;
+            }
+            compare -= op_temp2;
+            op_temp1 -= compare;
+            str += i - 1 + '0';
+        }
+        op_temp1 = op_temp1 * BigNum::TEN;
+    }
+
+    BigNum re(str);
+
+    while (Integer_Size--) {
+        re = re * BigNum::TEN;
+    }
+
+    // 符号位判断，剪枝
     op1 = re;
     op1.trim();
-    op1.tag = ( (op1.tag && op2.tag) || (!op1.tag && !op2.tag) );
+    op1.tag = ((op1.tag && op2.tag) || (!op1.tag && !op2.tag));
+
+    
+
+
     return op1;
 }
+
 
 BigNum operator+(const BigNum& op1,const BigNum& op2){
     BigNum temp(op1);
@@ -583,11 +542,11 @@ bool operator>(const BigNum& op1,const BigNum& op2){
     return tag;
 }
 
-bool operator==(const BigNum& op1,const BigNum& op2){
-    if(op1.tag == (!op2.tag)){
+bool operator==(const BigNum& op1, const BigNum& op2){
+    if(op1.tag != op2.tag){
         return false;
     }
-    //这里十分奇怪，因为两个标记都是true的时候，t得到的结果是false，然后if判断的时候确又视为true
+
     if(op1.integer.size() != op2.integer.size() ){
         return false;
     }
